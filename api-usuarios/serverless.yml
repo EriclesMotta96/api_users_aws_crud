@@ -1,0 +1,77 @@
+#Nome do serviço, informações da versão utilizada, provedores e linguagem escolhida
+service: api-usuarios
+plugins:
+  - serverless-offline
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  #Região e stage default do arquivo, caso o usuario não informar o stage durante o comando deploy, será usado o valor do stage atual do arquivo
+  stage: dev
+  region: us-east-1
+  apiGateway:
+    shouldStartNameWithService: true
+  lambdaHashingVersion: 20201221
+
+  #Variaveis locais, nesse caso usando apenas o nome da tabela
+  environment:
+    USERS_TABLE: "USERS_${opt:stage, self:provider.stage}"
+
+  #Permissões IAM para que a api tenha acesso ao banco de dados com essas permissões
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.USERS_TABLE}"
+
+#Lambdas/endpoints da apiGateway
+functions:
+  listUser:
+    handler: src/service/usuarioService/usuarioService.listUser
+    events:
+      - http:
+          path: users
+          method: get
+  saveUser:
+    handler: src/service/usuarioService/usuarioService.saveUser
+    events:
+      - http:
+          path: users/save
+          method: post
+  updateUser:
+    handler: src/service/usuarioService/usuarioService.updateUser
+    events:
+      - http:
+          path: users/{userID}
+          method: put
+  deleteUser:
+    handler: src/service/usuarioService/usuarioService.deleteUser
+    events:
+      - http:
+          path: users/{userID}
+          method: delete
+
+#Informações do DynamoDB, define atributos do objJSON que será salvo, tipo, keySchema e etc
+resources:
+  Resources:
+    UsersTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.USERS_TABLE}
+        AttributeDefinitions:
+          - AttributeName: user_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: user_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1

@@ -1,0 +1,19 @@
+{
+  "name": "api-usuarios",
+  "version": "1.0.0",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "serverless-offline": "^8.7.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1117.0",
+    "jshint": "^2.13.4"
+  }
+}
